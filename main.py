@@ -30,8 +30,8 @@ def parse_args():
                       help='权重衰减')
     
     # 模型参数
-    parser.add_argument('--init_features', type=int, default=64, 
-                      help='初始特征图数量')
+    parser.add_argument('--init_features', type=int, default=16, 
+                      help='初始特征图数量（简化模型默认16）')
     
     # 保存参数
     parser.add_argument('--save_dir', type=str, default='./results', 

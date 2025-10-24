@@ -70,11 +70,8 @@ class ResGRUBlock(nn.Module):
         self.in_channels = in_channels
         self.out_channels = out_channels
         
-        # 第一个GRU模块
+        # 单个GRU模块
         self.gru1 = GRUModule(in_channels, out_channels)
-        
-        # 第二个GRU模块
-        self.gru2 = GRUModule(out_channels, out_channels)
         
         # 残差连接调整
         if in_channels != out_channels:
@@ -99,14 +96,11 @@ class ResGRUBlock(nn.Module):
         batch_size, _, height, width = x.size()
         h1 = torch.zeros(batch_size, self.out_channels, height, width, device=x.device)
         
-        # 第一个GRU模块
+        # GRU模块前向传播
         h1 = self.gru1(x, h1)
         
-        # 第二个GRU模块
-        h2 = self.gru2(h1, h1)  # 使用h1作为初始隐藏状态
-        
         # 残差连接 + ReLU
-        out = self.relu(h2 + residual)
+        out = self.relu(h1 + residual)
         
         return out
 
@@ -189,28 +183,26 @@ class UpBlock(nn.Module):
 
 class ResGRUUNet(nn.Module):
     """ResGRUU-Net网络"""
-    def __init__(self, in_channels=3, out_channels=1, init_features=32):  # 初始特征数从64减少到32
+    def __init__(self, in_channels=3, out_channels=1, init_features=16):  # 进一步减少初始特征数到16
         super(ResGRUUNet, self).__init__()
         self.in_channels = in_channels
         self.out_channels = out_channels
         self.init_features = init_features
         
-        # 减少下采样路径从4个到3个
-        self.down1 = DownBlock(in_channels, init_features, num_resgru_blocks=1)  # 减少ResGRU块数量
+        # 减少下采样路径从3个到2个
+        self.down1 = DownBlock(in_channels, init_features, num_resgru_blocks=1)
         self.down2 = DownBlock(init_features, init_features * 2, num_resgru_blocks=1)
-        self.down3 = DownBlock(init_features * 2, init_features * 4, num_resgru_blocks=2)
         
         # 简化瓶颈层
         self.bottleneck = ResGRUBlock(init_features * 4, init_features * 8)
         
         # 减少上采样路径从4个到3个
-        self.up1 = UpBlock(init_features * 8, init_features * 4, num_resgru_blocks=2)
-        self.up2 = UpBlock(init_features * 4, init_features * 2, num_resgru_blocks=1)
-        self.up3 = UpBlock(init_features * 2, init_features, num_resgru_blocks=1)
+        self.up1 = UpBlock(init_features * 2, init_features)
+        self.up2 = UpBlock(init_features, init_features // 2)
         
         # 输出层保持不变
         self.output_layer = nn.Sequential(
-            nn.Conv2d(init_features, out_channels, kernel_size=1),
+            nn.Conv2d(init_features // 2, out_channels, kernel_size=1),
             nn.Sigmoid()
         )
     
