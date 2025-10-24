@@ -81,6 +81,10 @@ class DRIVEDataset(Dataset):
             label = Image.open(label_path).convert('L')
             mask = Image.open(mask_path).convert('L')
             
+            # 调整图像大小以匹配模型输出尺寸 (584x560)
+            image = image.resize((560, 584), Image.BILINEAR)
+            label = label.resize((560, 584), Image.NEAREST)
+            
             # 应用mask
             label = self.apply_mask(label, mask)
             

@@ -298,6 +298,19 @@ class Trainer:
                 
                 # 清理内存
                 clear_memory()
+        except Exception as e:
+            self.logger.log(f"训练过程中发生异常: {str(e)}")
+            # 保存紧急检查点
+            emergency_checkpoint_path = os.path.join(
+                self.config['save_dir'], 'checkpoints', 'emergency_checkpoint.pth'
+            )
+            save_checkpoint(
+                self.model, self.optimizer, epoch + 1,
+                {'train': train_metrics, 'val': val_metrics},
+                emergency_checkpoint_path
+            )
+            self.logger.log(f"紧急检查点已保存至: {emergency_checkpoint_path}")
+            raise  # 重新抛出异常以便用户查看错误详情
             
             # 训练结束
             self.logger.log("训练完成!")
