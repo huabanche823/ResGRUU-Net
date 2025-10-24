@@ -1,0 +1,20 @@
+# ResGRUU-Net dependency list
+
+# PyTorch related
+torch==1.10.1
+torchvision==0.11.2
+
+# Data processing
+numpy>=1.19.5
+pillow>=8.0.0
+scikit-learn>=0.24.0
+
+# Visualization
+matplotlib>=3.3.0
+tqdm>=4.50.0
+
+# System monitoring
+psutil>=5.8.0
+
+# Other
+argparse>=1.1
